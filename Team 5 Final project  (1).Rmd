@@ -1,0 +1,224 @@
+---
+title: "TEAM 5 METKARI RUPALI CHANDRASHEKARAPPA SHIVAPRASAD ALY 6015"
+output: html_notebook
+---
+
+# Introduction:
+
+#### The data were originally collected by New York Police Department officers and record information gathered as a result of stop question and frisk encounters from the year 2006 to 2019. Each record represents a shooting incident in NYC and includes information about the event, the location and the time of occurrence. In addition, information related to suspect and victim demographics is also included.
+#### By looking at factors such as time, location, sex, and age. We also analyze the shootings by the five boroughs, Brooklyn, The Bronx, Queens, Manhattan, and Staten Island, by factors such as population and per capita GDP.
+
+
+
+
+## Question 1: Identification of the methods used along with justification for those methods.
+
+### Business question 1:
+
+#### Question: In the area of Brooklyn, Can we predict were there any discrepancies in the shootings that were recorded as murder but were not murder.
+#### Method to use: Generalized logistic regression
+#### Justification: Statistical_Murder_Flag column is binomial and we see many cases where the murder has been registered but actually murder not happened by using a confusion matrix. First of all, the logistic regression accepts only dichotomous (binary) input as a dependent variable (i.e., a vector of 0 and 1).
+
+### Business question 2:
+
+#### Question: As safety and protection of the black race, we would like to find out that can we predict if New York City is safer for the black race to live.
+#### Method to use: Generalized linear regression
+#### Justification: We use the date, victim race in the prediction model. This is an important societal question to solve and predict if New York City is safe for the black race. The target variable is victim race
+
+### Business Question 3:
+
+#### Question: Can we predict, if New York City is safer for women at the night? 
+#### Method to use: Generalized linear regression
+#### Justification: We use the victim sex, time variables and location in the prediction model. This will help in predicting the specific prediction between the associted varaibles. It also includes catergorical varaibles in its system. the target variable is victim sex
+
+
+#### Install libraries if its not installed.
+```{r}
+
+rm(list = ls())
+if (!require(xlsx)) {install.packages("xlsx")}
+if (!require(stringr)) {install.packages("stringr")}
+if (!require(ggplot2)) {install.packages("ggplot2")}
+if (!require(lattice)) {install.packages("lattice")}
+if (!require(dplyr)) {install.packages("dplyr")}
+if (!require(scales)) {install.packages("scales")}
+if (!require(plotly)) {install.packages("plotly")}
+if (!require(DataCombine)) {install.packages("DataCombine")}
+if (!require(gtable)) {install.packages("gtable")}
+if (!require(ggpubr)) {install.packages("ggpubr")}
+if (!require(ggpmisc)) {install.packages("ggpmisc")}
+if (!require(ISLR)) {install.packages("ISLR")}
+if (!require(WriteXLS)) {install.packages("WriteXLS")}
+if (!require(readr)) {install.packages("readr")}
+if (!require(expss)) {install.packages("expss")}
+if (!require(MASS)) {install.packages("MASS")}
+if (!require(corrplot)) {install.packages("corrplot")}
+if (!require(ggcorrplot)) {install.packages("ggcorrplot")}
+if (!require(caret)) {install.packages("caret")}
+if (!require(InformationValue)) {install.packages("InformationValue")}
+if (!require(pls)) {install.packages("pls")}
+if (!require(glmnet)) {install.packages("glmnet")}
+if (!require(Matrix)) {install.packages("Matrix")}
+if (!require(smbinning)) {install.packages("smbinning")}
+if (!require(ROCR)) {install.packages("ROCR")}
+if (!require(RCurl)) {install.packages("RCurl")}
+if (!require(curl)) {install.packages("curl")}
+if (!require(httr)) {install.packages("httr")}
+if (!require(car)) {install.packages("car")}
+if (!require(plyr)) {install.packages("plyr")}
+if (!require(tinytex)) {install.packages("tinytex")}
+if (!require(pls)) {install.packages("pls")}
+if (!require(glmnet)) {install.packages("glmnet")}
+if (!require(Matrix)) {install.packages("Matrix")}
+if (!require(caTools)) {install.packages("caTools")}
+if (!require(leaps)) {install.packages("leaps")}
+if (!require(QuantPsyc)) {install.packages("QuantPsyc")}
+if (!require(robustbase)) {install.packages("robustbase")}
+if (!require(sandwich)) {install.packages("sandwich")}
+if (!require(pca3d)) {install.packages("pca3d")}
+if (!require(scatterplot3d)) {install.packages("scatterplot3d")}
+if (!require(car)) {install.packages("car")}
+if (!require(carData)) {install.packages("carData")}
+if (!require(gridExtra)) {install.packages("gridExtra")}
+if (!require(GGally)) {install.packages("GGally")}
+if (!require(plotrix)) {install.packages("plotrix")}
+
+
+```
+
+#### Load libraries
+```{r}
+
+lapply(c("xlsx","stringr", "ggplot2", "lattice", "dplyr", "scales", "plotly", "Datacombine", "gtable", "ggpubr", "ggmisc", "ISLR", "WriteXLS", "readr", "expss", "MASS", "corrplot", "ggcorrplot", "InformationValue","pls","glmnet","Matrix","smbinning","ROCR", "RCurl","curl","httr","car","plyr", "tinytex","pls","glmnet","Matrix","caTools","leaps","QuantPsyc","robustbase","sandwich","pca3d",
+"scatterplot3d","car","carData","gridExtra","GGally","plotrix"), require, character.only = TRUE)
+
+```
+
+### load dataset
+```{r}
+
+nypd <- read_csv("NYPD_Shooting_Incident_Data__Historic_.csv")
+
+head(nypd)
+
+```
+
+### Structure of the dataset
+```{r}
+str(nypd)
+```
+
+### find the sum and the percentage of missings in your dataset
+```{r}
+na_values <- data.frame(sum(is.na(nypd)), mean(is.na(nypd)))
+na_values
+```
+# in the nypd dataset there are a total of 34210 blank spaces which has been filled with the NA values for our ease of doing the analysis
+
+
+
+
+#### Q1: Which boro has the most crime complaints in the data?
+```{r}
+# Most frequesnt shooting area
+
+buro <- ggplot(nypd, aes(x = BORO, fill=as.factor(BORO))) + 
+
+                geom_bar(width=0.9, stat="count") + 
+
+                theme(legend.position="none")
+
+buro
+```
+##### We can see that Brooklyn boro has the highest shooting incidents followed by Bronx, Queens, Manhatten and Staten Island from the dataset
+
+
+#### Q2: What about most crime complaints per capita?
+```{r}
+#Crime Scene per Capita by Boro
+
+boro.totals <- data.frame(table(nypd$BORO))
+
+names(boro.totals)[1] <- "Burrough"
+
+boro_Population <- c(1455444, 2636735, 1644518, 2339150, 474588)    #NYC.gov has 2015 estimates population : 1455444, 2636735, 1644518, 2339150, and 474588 for BX, BK, MH, QN, and SI respectively.
+boro.totals[,"Freq"] <- (boro.totals[,"Freq"]/boro_Population)
+
+per_capita_boro <- ggplot(boro.totals, aes(x= Burrough, y = Freq, fill = as.factor(Burrough))) +
+
+                geom_bar(width=0.9, stat="identity") + 
+
+                ggtitle("Crime Records per Capita by Burrough") + 
+
+                theme(legend.position="none")
+
+per_capita_boro
+
+```
+
+##### We have searched the Boro population and taken out the population of Boros of New York City for the year 2015. With the help of this, we were able to plot the crime data per capita for the boros mentioned in the dataset. Even though Brooklyn had the highest shootings incidents but in terms of per capita, Bronx boro has the highest
+
+
+## Datetime Exploration
+### Let’s analyze the crime record frequency by Hour, Day of Week, Day of Month, and Month of Year.
+
+#### Q3: Which ethnicity has been on the receiving end of crimes in New York City?
+```{r}
+
+slices <- table(nypd$VIC_RACE) # SELCTION OF VICTIME RACE COLUMN
+slices
+lbls <- c("AI", "AS", "Blk", "BH", "Uknown", "White","WH") # AI- American Indian, AS- Asian, Blk- Black, BH- Black Hispanic, WH- White Hispanic
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls,"-", pct) 
+lbls <- paste(lbls,"%",sep="")
+
+pie(slices,labels = lbls, col=rainbow(length(lbls)),main="Pie chart of victim race")
+
+
+```
+
+#### As we can see that the percentage of the victims with black ethnicity is 72% from the last 10 years.
+
+```{r}
+
+barchart(nypd$VIC_SEX)
+
+```
+
+##### The number of male victims have been accounted the highest in the dataset 
+
+```{r}
+
+plot_correlate(nypd)
+
+
+
+```
+
+#### As you can see that dataset in each numeric column is correlated with values ranging from +1 to -1. The data which are closer to 1 shows that they are positively correlated. In this dataset, we do not see any major positive correlation in the dataset between the numeric observations. and the data which are moving towards -1 means they are negatively or inversely correlated. The data with a value of 0 (zero) means there is no relation between them.
+
+
+
+# CONCLUSION
+
+##### THe 3 business questions have been formed in which the first business question is to test if there are any wrong entries when the entry in the Statistical_Murder_Flag has been entered but in reality, the murder has not been committed. Is there a chance of false negatives in the dataset? In order to find this out, we can use glm function by creating the train and test data set. With the help of the confusion matrix, we can determine if there is any changes in the train and test models
+
+##### The second business question is to check to keep an eye on the safety of black people whether the safety of the black race has been improving in New York city. This might be a good question to answer and if it is not improving then the city police chief can implement some special programs to reinvigorate the black race and understand the reason and curb the number of victims of crimes from the black race.
+
+##### Another major crime question people are interested in the safety of women in the nights. Are the women population feel safe in the New York city neighbourhoods especially at the night? Does the current set of measure put forward by the police is enough that shows a decrease in the trend or new measures have to be put in place to answer the same.
+
+##### With the above business questions, we have plotted EDA that explores basic understanding o in the dataset. The first EDA was to udnerstand as in which neighbourhood has highest number of shooting recorded in the Newyork city. We were able to understand that Brooklyn has the highest number of shooting follwoed by Bronx. We also has the curiosity to understand the crimes per capita in the neighborhood. Hence we imported the population for the neighborhoods in the boros found out that Bronx had the highest crime per capita in the New York city. We also wanted to understand that the total percentage of race who have been the victims in the crimes and found out that 72% of them are black population. In order to understnad the victim sex then the males have been the highest on the receiving end in terms of suffering.
+
+
+# REFERENCES
+
+##### 1. Complete Introduction to Linear Regression in R by Selva Prabhakaran(2019) ML+ Let's DataScience: https://www.machinelearningplus.com/machine-learning/complete-introduction-linear-regression-r/
+
+##### 2. Analyzing crime in NYC: data, visuals, Posted by NYC Data Science Academy on August 18, 2016, Data Science Central: https://www.datasciencecentral.com/profiles/blogs/7-sins-in-nyc
+
+##### 3. NEW YORK CITY CRIME STUDY FROM(9/8/2020), CAP INDEX: https://capindex.com/covid-19-crime-new-york-city-crime-study-for-2020/
+
+##### 4. NYPD Shooting Incident Data (Historic) Last Updated 3 May 2021, Open Data Network:https://opendatanetwork.herokuapp.com/dataset/data.cityofnewyork.us/833y-fsy8
+
+##### 5. How to Create a Confusion Matrix in R (Step-by-Step) By Zach (April 1, 2021) Statology: https://www.statology.org/confusion-matrix-in-r/
+
